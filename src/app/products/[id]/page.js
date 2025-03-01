@@ -1,20 +1,31 @@
 import React from "react";
 
-async function getProductById(id) {
-  const res = await fetch(`https://fakestoreapi.com/products/${id}`);
-  const product = await res.json();
-  return product;
+export async function getProductById(id) {
+  try {
+    const res = await fetch(`https://fakestoreapi.com/products/${id}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error("Failed to fetch product");
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    return null;
+  }
 }
 
 export async function generateMetadata({ params }) {
   const product = await getProductById(params.id);
   return {
-    title: product.title,
+    title: product ? product.title : "Product Not Found",
   };
 }
 
 const ProductPage = async ({ params }) => {
   const product = await getProductById(params.id);
+
+  if (!product) {
+    return <h1 style={styles.error}>Product Not Found</h1>;
+  }
 
   return (
     <div style={styles.container}>
@@ -56,6 +67,12 @@ const styles = {
     fontWeight: "bold",
     color: "green",
     marginTop: "10px",
+  },
+  error: {
+    textAlign: "center",
+    fontSize: "24px",
+    color: "red",
+    marginTop: "50px",
   },
 };
 
